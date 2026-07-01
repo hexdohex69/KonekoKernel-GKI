@@ -165,13 +165,13 @@ runs:
         
         echo "✅ Other patches applied"
 
-    - name: Enable Performance & Battery Configs (ZRAM, MGLRU, BFQ, BBR, Power Mgmt)
+    - name: Enable Performance & Battery Configs (ZRAM, MGLRU, BFQ, Power Mgmt)
       uses: ./.github/actions/set-kernel-config
       with:
         config_list: |
-          CONFIG_ZRAM=y
+          CONFIG_ZRAM=m
           CONFIG_ZRAM_DEF_COMP_ZSTD=y
-          CONFIG_ZSMALLOC=y
+          CONFIG_ZSMALLOC=m
           CONFIG_ZSMALLOC_STAT=y
           CONFIG_LRU_GEN=y
           CONFIG_LRU_GEN_ENABLED=y
@@ -187,10 +187,6 @@ runs:
           CONFIG_PREEMPT_NONE=n
           CONFIG_PREEMPT_VOLUNTARY=n
           CONFIG_HIGH_RES_TIMERS=y
-          CONFIG_TCP_CONG_BBR=y
-          CONFIG_TCP_CONG_ADVANCED=y
-          CONFIG_DEFAULT_BBR=y
-          CONFIG_NET_SCH_FQ=y
           CONFIG_TCP_FASTOPEN=y
           CONFIG_CPU_IDLE=y
           CONFIG_CPU_IDLE_GOV_MENU=y
