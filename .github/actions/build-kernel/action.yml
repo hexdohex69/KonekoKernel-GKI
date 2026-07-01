@@ -38,19 +38,6 @@ runs:
     if: false
     uses: ./.github/actions/set-kernel-config
 
-  - name: 'Inject Beatrice Sysfs Driver'
-    shell: bash
-    run: |
-      set -euo pipefail
-      TARGET_DIR="$GITHUB_WORKSPACE/kernel/common"
-      mkdir -p "$TARGET_DIR/drivers/beatrice"
-      cd "${{ github.action_path }}/patches/beatrice"
-      cp beatrice_core.c "$TARGET_DIR/drivers/beatrice/beatrice_core.c"
-      cp [Mm]akefile "$TARGET_DIR/drivers/beatrice/Makefile"
-      if ! grep -q "beatrice/" "$TARGET_DIR/drivers/Makefile"; then
-        echo "obj-y += beatrice/" >> "$TARGET_DIR/drivers/Makefile"
-      fi
-
   - name: 'Inject Tenebrion CPU/Cpuset Driver'
     shell: bash
     run: |
