@@ -37,8 +37,8 @@ runs:
   - name: Setup Kernel Configs
     if: false
     uses: ./.github/actions/set-kernel-config
- 
- - name: 'Debug - List Beatrice Patch Files'
+
+  - name: 'Debug - List Beatrice Patch Files'
     shell: bash
     run: |
       echo "=== Isi folder beatrice ==="
@@ -66,7 +66,14 @@ runs:
 
       # Eksekusi penyalinan menggunakan path yang sudah bersih
       cp "$CLEAN_ACTION_PATH/patches/beatrice/beatrice_core.c" drivers/beatrice/beatrice_core.c
-      cp "$CLEAN_ACTION_PATH/patches/beatrice/Makefile" drivers/beatrice/Makefile
+
+      MAKEFILE_SRC=$(find "$CLEAN_ACTION_PATH/patches/beatrice/" -iname "makefile" | head -1)
+      if [ -z "$MAKEFILE_SRC" ]; then
+        echo "ERROR: File Makefile/makefile tidak ditemukan di folder beatrice"
+        ls -la "$CLEAN_ACTION_PATH/patches/beatrice/"
+        exit 1
+      fi
+      cp "$MAKEFILE_SRC" drivers/beatrice/Makefile
 
       # Daftarkan ke Makefile utama drivers kernel
       if ! grep -q "beatrice/" drivers/Makefile; then
