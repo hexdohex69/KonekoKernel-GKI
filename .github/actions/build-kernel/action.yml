@@ -143,19 +143,21 @@ runs:
       SELINUX_SCRIPT_SRC="$CLEAN_ACTION_PATH/patches/tenebrion/selinux.sh"
       if [ ! -f "$SELINUX_SCRIPT_SRC" ]; then
         echo "ERROR: selinux.sh not found at $SELINUX_SCRIPT_SRC"
-        ls -la "$CLEAN_ACTION_PATH/patches/tenebrion/" || true
         exit 1
       fi
       cp "$SELINUX_SCRIPT_SRC" ./selinux.sh
       chmod +x ./selinux.sh
 
-      echo "=== Searching for KernelSU-Next rules.c ==="
-      RULES_FILE=$(find . -path "*kernelsu*" -iname "rules.c" 2>/dev/null | head -1)
+      echo "=== Full contents of drivers/kernelsu ==="
+      find drivers/kernelsu -type f | sort
+
+      echo "=== Searching for rules.c specifically inside drivers/kernelsu ==="
+      RULES_FILE=$(find drivers/kernelsu -iname "rules.c" 2>/dev/null | head -1)
 
       if [[ -z "$RULES_FILE" ]]; then
-        echo "❌ rules.c not found in this KernelSU-Next source tree."
-        echo "Directory structure related to kernelsu/ksu:"
-        find . -iname "*kernelsu*" -o -iname "*ksu*" 2>/dev/null | grep -v "\.git" || true
+        echo "❌ No rules.c inside drivers/kernelsu."
+        echo "=== Searching for any file containing 'ksu_allow' or SELinux policy logic ==="
+        grep -rl "ksu_allow\|selinux_state.policy\|policydb" drivers/kernelsu 2>/dev/null || echo "No matches found either."
         exit 1
       fi
       echo "✅ Found: $RULES_FILE"
