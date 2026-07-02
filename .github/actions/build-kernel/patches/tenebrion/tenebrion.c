@@ -1,10 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/cpufreq.h>
-#include <linux/kthread.h>
-#include <linux/delay.h>
+
 #include <linux/mutex.h>
 #include <linux/fs.h>
 #include <linux/pm_qos.h>
@@ -21,7 +15,7 @@
 
 #define ZRAM_COMP_PATH       "/sys/block/zram0/comp_algorithm"
 #define ZRAM_COMP_ALGO       "zstd"
-#define ZRAM_RETRY_COUNT     45
+#define ZRAM_RETRY_COUNT     120
 #define ZRAM_RETRY_DELAY_MS  1000
 
 static const char *iosched_candidates[] = {
@@ -151,7 +145,6 @@ static enum tenebrion_path tenebrion_detect_path(void)
         return PATH_BACKLIGHT;
     }
 
-    pr_err("tenebrion: no supported screen state path found - disabling\n");
     return PATH_UNSUPPORTED;
 }
 
@@ -428,22 +421,28 @@ static int tenebrion_watcher(void *data)
         waited_ms += BOOT_DELAY_STEP_MS;
     }
 
+    /* FIX: a single failed detection at boot is not permanent - the DRM
+     * / panel driver may simply not have finished probing yet. Fall
+     * through into the main loop, which will keep retrying, instead of
+     * exiting the thread outright. */
     active_path = tenebrion_detect_path();
     if (active_path == PATH_UNSUPPORTED) {
-        pr_info("tenebrion: path unsupported - watcher exiting\n");
-        return 0;
+        pr_info("tenebrion: path not ready at boot - will keep retrying\n");
+    } else {
+        tenebrion_qos_init();
+        tenebrion_iosched_detect();
     }
 
-    tenebrion_qos_init();
-    tenebrion_iosched_detect();
-
     while (!kthread_should_stop()) {
-        if (active_path == PATH_NONE) {
+        if (active_path == PATH_NONE || active_path == PATH_UNSUPPORTED) {
             active_path = tenebrion_detect_path();
             if (active_path == PATH_UNSUPPORTED) {
-                pr_info("tenebrion: retry failed - watcher exiting\n");
-                break;
+                msleep_interruptible(POLL_INTERVAL_MS);
+                continue;
             }
+            pr_info("tenebrion: path became available -> initializing\n");
+            tenebrion_qos_init();
+            tenebrion_iosched_detect();
         }
 
         current_state = tenebrion_get_screen_state();
