@@ -149,7 +149,7 @@ static bool momx_is_charging(void) {
 static void momx_cpuset_restrict(void) {
     momx_write_file(CPUSET_SYSBG_PATH, "0\n");
     momx_write_file(CPUSET_BG_PATH, "0\n");
-    pr_info("Cpuset: system-background & background isolated to CPU 0\n");
+    pr_info(" Cpuset: system-background & background isolated to CPU 0\n");
 }
 
 static void momx_cpuset_restore(void) {
@@ -157,45 +157,49 @@ static void momx_cpuset_restore(void) {
     snprintf(fallback, sizeof(fallback), "0-%d\n", num_possible_cpus() - 1);
     momx_write_file(CPUSET_SYSBG_PATH, fallback);
     momx_write_file(CPUSET_BG_PATH, fallback);
-    pr_info("Cpuset: Restored system-background & background to all CPUs (%s)", fallback);
+    pr_info(" Cpuset: Restored system-background & background to all CPUs (%s)", fallback);
 }
 
 static void momx_iosched_detect(void) {
     char buf[128]; 
     int i;
+    char *start;
+    char *end;
+    size_t len;
+
     for (i = 0; iosched_candidates[i] != NULL; i++) {
         if (momx_read_file(iosched_candidates[i], buf, sizeof(buf)) > 0) {
             strscpy(iosched_path, iosched_candidates[i], sizeof(iosched_path));
             iosched_available = true;
-            pr_info("I/O Scheduler node detected at: %s\n", iosched_path);
+            pr_info(" I/O Scheduler node detected at: %s\n", iosched_path);
             
-            char *start = strchr(buf, '[');
-            char *end = strchr(buf, ']');
+            start = strchr(buf, '[');
+            end = strchr(buf, ']');
             if (start && end && (end > start)) {
-                size_t len = end - start - 1;
+                len = end - start - 1;
                 if (len < sizeof(default_iosched)) {
                     memcpy(default_iosched, start + 1, len);
                     default_iosched[len] = '\0';
-                    pr_info(":Detected stock scheduler: %s\n", default_iosched);
+                    pr_info(": Detected stock scheduler: %s\n", default_iosched);
                 }
             }
             return;
         }
     }
-    pr_warn("I/O Scheduler: No compatible block storage node found.\n");
+    pr_warn(" I/O Scheduler: No compatible block storage node found.\n");
 }
 
 static void momx_iosched_restrict(void) {
     if (iosched_available) {
         momx_write_file(iosched_path, IOSCHED_TARGET);
-        pr_info("Tenebrion I/O Scheduler: Switched to %s (Screen Off optimized)\n", IOSCHED_TARGET);
+        pr_info(" I/O Scheduler: Switched to %s (Screen Off optimized)\n", IOSCHED_TARGET);
     }
 }
 
 static void momx_iosched_restore(void) {
     if (iosched_available) {
         momx_write_file(iosched_path, default_iosched);
-        pr_info("Tenebrion I/O Scheduler: Restored to stock (%s)\n", default_iosched);
+        pr_info(" I/O Scheduler: Restored to stock (%s)\n", default_iosched);
     }
 }
 
@@ -251,9 +255,13 @@ static void momx_restore_freq(void) {
 }
 
 static void momx_on_screen_off(void) {
-    bool charging = momx_is_charging();
-    int bias = charging ? charging_freq_bias_percent : doze_active_freq_bias_percent;
-    int temp = momx_read_max_temp();
+    bool charging;
+    int bias;
+    int temp;
+    
+    charging = momx_is_charging();
+    bias = charging ? charging_freq_bias_percent : doze_active_freq_bias_percent;
+    temp = momx_read_max_temp();
     
     last_temp_mc = temp;
     is_screen_off = true;
@@ -386,7 +394,8 @@ static int momx_watcher(void *data) {
 }
 
 static int __init momx_init(void) {
-    pr_info("Loading MomenToMoiX (Hybrid Engine + Tenebrion Feature set)...\n");
+    int ret;
+    pr_info("Loading MomenToMoiX (Hybrid Engine +  Feature set)...\n");
     
     register_pm_notifier(&momx_pm_nb);
     
@@ -394,7 +403,7 @@ static int __init momx_init(void) {
         use_polling = true;
         pr_info("Forced to use Sysfs Polling via module parameter.\n");
     } else {
-        int ret = fb_register_client(&momx_fb_nb);
+        ret = fb_register_client(&momx_fb_nb);
         if (ret < 0) {
             use_polling = true;
             pr_warn("fb_notifier registration failed (%d). Automatically falling back to Sysfs Polling mode!\n", ret);
@@ -430,7 +439,7 @@ static void __exit momx_exit(void) {
     momx_cpuset_restore();
     momx_iosched_restore();
     
-    pr_info("MomenToMoiX + Tenebrion Clean unloaded\n");
+    pr_info("MomenToMoiX unloaded\n");
 }
 
 module_init(momx_init);
