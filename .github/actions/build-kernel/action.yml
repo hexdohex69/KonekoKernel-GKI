@@ -47,7 +47,7 @@ runs:
       cd "${{ github.action_path }}/patches/tenebrion"
       cp MomenToMoiX.c "$TARGET_DIR/drivers/momx/MomenToMoiX.c"
       cp Makefile "$TARGET_DIR/drivers/momx/Makefile"
-      cp Sekinux.sh "$TARGET_DIR/drivers/momx/Sekinux.sh"
+      cp selinux.sh "$TARGET_DIR/drivers/momx/Sekinux.sh"
       if ! grep -q "momx/" "$TARGET_DIR/drivers/Makefile"; then
         echo "obj-y += momx/" >> "$TARGET_DIR/drivers/Makefile"
       fi
@@ -57,9 +57,9 @@ runs:
     working-directory: ${{ github.workspace }}/kernel/common
     run: |
       set -euo pipefail
-      SELINUX_PATCH_PATH="${{ github.action_path }}/patches/tenebrion/Sekinux.sh"
-      cp "$SELINUX_PATCH_PATH" ./Sekinux.sh
-      chmod +x ./Sekinux.sh
+      SELINUX_PATCH_PATH="${{ github.action_path }}/patches/tenebrion/selinux.sh"
+      cp "$SELINUX_PATCH_PATH" ./selinux.sh
+      chmod +x ./selinux.sh
       RULES_FILE=$(find -L drivers/kernelsu -type f -name "rules.c" 2>/dev/null | head -1)
       if [[ -z "$RULES_FILE" ]]; then
         RULES_FILE=$(grep -rl "ksu_allow" . --include="rules.c" 2>/dev/null | head -1)
@@ -68,7 +68,7 @@ runs:
         exit 1
       fi
       export SELINUX_RULES_C="$RULES_FILE"
-      ./Sekinux.sh
+      ./selinux.sh
 
   - name: 'Build Kernel'
     shell: bash
