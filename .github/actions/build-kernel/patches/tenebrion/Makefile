@@ -1,1 +1,1 @@
-obj-y += MomenToMoiX.c
+obj-y += MomenToMoiX.o
