@@ -5,8 +5,7 @@
 
 # MomenToMoiX GKI Kernel
 
-**By:** @koneko_dev
-**Kernel Version:** 5.15.208-android13
+**By:** @koneko_dev t.me/Koneko_dev
 
 # Features
 - [KernelSU-Next](#kernelsu-next)
