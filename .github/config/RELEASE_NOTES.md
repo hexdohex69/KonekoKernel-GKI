@@ -49,7 +49,7 @@ su -c 'dmesg -w | grep momx'
 ```
 after the device finishes booting.
 
-Based on `@KanagawaYamadaVTeacher`'s Tenebrion logic and SELinux rules.
+Based on `https://github.com/LoggingNewMemory/SuiKernel-Release`'s Tenebrion logic and SELinux rules.
 
 ## Memory Management
 
