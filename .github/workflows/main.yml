@@ -27,7 +27,7 @@ on:
           - android14-6.1
           - android15-6.6
           - android16-6.12
-        default: All
+        default: android13-5.15
       feature_set:
         description: "Feature Set"
         type: choice
